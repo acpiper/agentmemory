@@ -333,6 +333,35 @@ function discoverComposeFile(): string | null {
   return candidates.find((c) => existsSync(c)) ?? null;
 }
 
+function isInvokedViaNpx(): boolean {
+  if (process.env["npm_lifecycle_event"] === "npx") return true;
+  const argv1 = process.argv[1] ?? "";
+  if (argv1.includes("_npx")) return true;
+  const ua = process.env["npm_config_user_agent"] ?? "";
+  if (ua.startsWith("npm/") || ua.includes(" npm/")) return true;
+  return false;
+}
+
+function shouldSkipNpxHint(): boolean {
+  try {
+    const prefsPath = join(homedir(), ".agentmemory", "preferences.json");
+    if (!existsSync(prefsPath)) return false;
+    const raw = readFileSync(prefsPath, "utf-8");
+    const prefs = JSON.parse(raw) as { skipNpxHint?: boolean };
+    return prefs?.skipNpxHint === true;
+  } catch {
+    return false;
+  }
+}
+
+function maybeEmitNpxHint(): void {
+  if (!isInvokedViaNpx()) return;
+  if (shouldSkipNpxHint()) return;
+  p.log.info(
+    "Tip: install globally for the bare `agentmemory` command:\n  npm install -g @agentmemory/agentmemory",
+  );
+}
+
 function adoptRunningEngine(): void {
   try {
     const existingState = readEngineState();
@@ -671,6 +700,7 @@ async function main() {
       whichBinary("iii") ?? fallbackIiiPaths().find((p) => existsSync(p)) ?? null;
     warnIfEngineVersionMismatch(attachedBin);
     adoptRunningEngine();
+    maybeEmitNpxHint();
     await import("./index.js");
     return;
   }
@@ -739,6 +769,7 @@ async function main() {
   }
 
   s.stop("iii-engine is ready");
+  maybeEmitNpxHint();
   await import("./index.js");
 }
 
