@@ -144,6 +144,74 @@ describe("mem::remember stamps agentId on the Memory (#554)", () => {
 
     expect(result.memory.agentId).toBeUndefined();
   });
+
+  it("body agentId is trimmed of leading/trailing whitespace", async () => {
+    const { registerRememberFunction } = await import(
+      "../src/functions/remember.js"
+    );
+    const sdk = mockSdk();
+    const kv = mockKV();
+    registerRememberFunction(sdk as never, kv as never);
+
+    const result = (await sdk.trigger("mem::remember", {
+      content: "trim me",
+      agentId: "  architect  ",
+    })) as { memory: { id: string; agentId?: string } };
+
+    expect(result.memory.agentId).toBe("architect");
+  });
+
+  it("body agentId longer than 128 chars is truncated to 128", async () => {
+    const { registerRememberFunction } = await import(
+      "../src/functions/remember.js"
+    );
+    const sdk = mockSdk();
+    const kv = mockKV();
+    registerRememberFunction(sdk as never, kv as never);
+
+    const long = "x".repeat(500);
+    const result = (await sdk.trigger("mem::remember", {
+      content: "cap length",
+      agentId: long,
+    })) as { memory: { id: string; agentId?: string } };
+
+    expect(result.memory.agentId).toBeDefined();
+    expect(result.memory.agentId!.length).toBe(128);
+    expect(result.memory.agentId).toBe("x".repeat(128));
+  });
+
+  it("whitespace-only body agentId falls back to env AGENT_ID", async () => {
+    process.env["AGENT_ID"] = "developer";
+    const { registerRememberFunction } = await import(
+      "../src/functions/remember.js"
+    );
+    const sdk = mockSdk();
+    const kv = mockKV();
+    registerRememberFunction(sdk as never, kv as never);
+
+    const result = (await sdk.trigger("mem::remember", {
+      content: "fall through to env",
+      agentId: "   ",
+    })) as { memory: { id: string; agentId?: string } };
+
+    expect(result.memory.agentId).toBe("developer");
+  });
+
+  it("empty-string body agentId with no env → no agentId stamped", async () => {
+    const { registerRememberFunction } = await import(
+      "../src/functions/remember.js"
+    );
+    const sdk = mockSdk();
+    const kv = mockKV();
+    registerRememberFunction(sdk as never, kv as never);
+
+    const result = (await sdk.trigger("mem::remember", {
+      content: "no env no usable body",
+      agentId: "",
+    })) as { memory: { id: string; agentId?: string } };
+
+    expect(result.memory.agentId).toBeUndefined();
+  });
 });
 
 describe("AGENTMEMORY_AGENT_SCOPE mode (#554)", () => {
