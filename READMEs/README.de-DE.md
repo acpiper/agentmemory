@@ -125,17 +125,17 @@ agentmemory funktioniert mit jedem Agenten, der Hooks, MCP oder REST API unterst
 <sub>natives Plugin + 6 Hooks + MCP</sub>
 </td>
 <td align="center" width="12.5%">
-<a href="integrations/openclaw/"><img src="https://github.com/openclaw.png?size=120" alt="OpenClaw" width="48" height="48" /></a><br/>
+<a href="../integrations/openclaw/"><img src="https://github.com/openclaw.png?size=120" alt="OpenClaw" width="48" height="48" /></a><br/>
 <strong>OpenClaw</strong><br/>
 <sub>natives Plugin + MCP</sub>
 </td>
 <td align="center" width="12.5%">
-<a href="integrations/hermes/"><img src="https://github.com/NousResearch.png?size=120" alt="Hermes" width="48" height="48" /></a><br/>
+<a href="../integrations/hermes/"><img src="https://github.com/NousResearch.png?size=120" alt="Hermes" width="48" height="48" /></a><br/>
 <strong>Hermes</strong><br/>
 <sub>natives Plugin + MCP</sub>
 </td>
 <td align="center" width="12.5%">
-<a href="integrations/pi/"><img src="../assets/agents/pi.svg" alt="pi" width="48" height="48" /></a><br/>
+<a href="../integrations/pi/"><img src="../assets/agents/pi.svg" alt="pi" width="48" height="48" /></a><br/>
 <strong>pi</strong><br/>
 <sub>natives Plugin + MCP</sub>
 </td>
@@ -213,7 +213,7 @@ Sie erklären in jeder Session dieselbe Architektur. Sie entdecken dieselben Bug
 npx @agentmemory/agentmemory
 ```
 
-> **Neu in v0.9.0** — Landing-Site unter [agent-memory.dev](https://agent-memory.dev), Filesystem-Connector (`@agentmemory/fs-watcher`), das standalone MCP proxyt nun zum laufenden Server, sodass Hooks und Viewer übereinstimmen, Audit-Policy auf jedem Delete-Pfad kodifiziert, der Health-Check meldet `memory_critical` nicht mehr bei kleinen Node-Prozessen. Vollständige Hinweise in [CHANGELOG.md](CHANGELOG.md#090--2026-04-18).
+> **Neu in v0.9.0** — Landing-Site unter [agent-memory.dev](https://agent-memory.dev), Filesystem-Connector (`@agentmemory/fs-watcher`), das standalone MCP proxyt nun zum laufenden Server, sodass Hooks und Viewer übereinstimmen, Audit-Policy auf jedem Delete-Pfad kodifiziert, der Health-Check meldet `memory_critical` nicht mehr bei kleinen Node-Prozessen. Vollständige Hinweise in [CHANGELOG.md](../CHANGELOG.md#090--2026-04-18).
 
 ---
 
@@ -232,7 +232,7 @@ npx @agentmemory/agentmemory
 | **agentmemory hybrid** | **0.578** | **0.967** | **15 / 15** | 14 ms |
 | grep-Baseline | 0.267 | 0.967 | 15 / 15 | 0 ms |
 
-100 % Top-5-Trefferquote. **2,2×** bessere Präzision als die grep-Baseline bei identischer Eingabe. Volle Aufschlüsselung pro Typ: [`docs/benchmarks/2026-05-20-coding-agent-life-v1.md`](docs/benchmarks/2026-05-20-coding-agent-life-v1.md).
+100 % Top-5-Trefferquote. **2,2×** bessere Präzision als die grep-Baseline bei identischer Eingabe. Volle Aufschlüsselung pro Typ: [`docs/benchmarks/2026-05-20-coding-agent-life-v1.md`](../docs/benchmarks/2026-05-20-coding-agent-life-v1.md).
 
 **LongMemEval-S** (ICLR 2025, 500 Fragen)
 
@@ -257,11 +257,11 @@ npx @agentmemory/agentmemory
 </tr>
 </table>
 
-> Embedding-Modell: `all-MiniLM-L6-v2` (lokal, kostenlos, kein API-Schlüssel). Vollständige Berichte: [`benchmark/LONGMEMEVAL.md`](benchmark/LONGMEMEVAL.md), [`benchmark/QUALITY.md`](benchmark/QUALITY.md), [`benchmark/SCALE.md`](benchmark/SCALE.md). Konkurrenzvergleich: [`benchmark/COMPARISON.md`](benchmark/COMPARISON.md) — agentmemory vs mem0, Letta, Khoj, claude-mem, Hippo.
+> Embedding-Modell: `all-MiniLM-L6-v2` (lokal, kostenlos, kein API-Schlüssel). Vollständige Berichte: [`benchmark/LONGMEMEVAL.md`](../benchmark/LONGMEMEVAL.md), [`benchmark/QUALITY.md`](../benchmark/QUALITY.md), [`benchmark/SCALE.md`](../benchmark/SCALE.md). Konkurrenzvergleich: [`benchmark/COMPARISON.md`](../benchmark/COMPARISON.md) — agentmemory vs mem0, Letta, Khoj, claude-mem, Hippo.
 
-**Lokal reproduzieren:** [`eval/README.md`](eval/README.md) — Adapter-pluggable Harness für LongMemEval `_s` (öffentlich, 500 Fragen) + `coding-agent-life-v1` (interner 15-Session-Korpus). Adapter für grep / vector / agentmemory werden direkt verglichen, NDJSON-Ausgabe, veröffentlichte Scorecards landen in [`docs/benchmarks/`](docs/benchmarks/).
+**Lokal reproduzieren:** [`eval/README.md`](../eval/README.md) — Adapter-pluggable Harness für LongMemEval `_s` (öffentlich, 500 Fragen) + `coding-agent-life-v1` (interner 15-Session-Korpus). Adapter für grep / vector / agentmemory werden direkt verglichen, NDJSON-Ausgabe, veröffentlichte Scorecards landen in [`docs/benchmarks/`](../docs/benchmarks/).
 
-**Funktioniert kombiniert mit [codegraph](https://github.com/colbymchenry/codegraph), [Understand Anything](https://github.com/Lum1104/Understand-Anything) und [Graphify](https://github.com/safishamsi/graphify).** Code-Graph-Indizierung, mehragentige Build-Pipelines und breitere Knowledge Graphs über Docs / PDFs / Bilder / Videos. agentmemory merkt sich die Arbeit; diese drei Projekte beleuchten den Rest der Kontextschicht. Rezepte + Frage-Routing-Tabelle: [`docs/recipes/pairings.md`](docs/recipes/pairings.md).
+**Funktioniert kombiniert mit [codegraph](https://github.com/colbymchenry/codegraph), [Understand Anything](https://github.com/Lum1104/Understand-Anything) und [Graphify](https://github.com/safishamsi/graphify).** Code-Graph-Indizierung, mehragentige Build-Pipelines und breitere Knowledge Graphs über Docs / PDFs / Bilder / Videos. agentmemory merkt sich die Arbeit; diese drei Projekte beleuchten den Rest der Kontextschicht. Rezepte + Frage-Routing-Tabelle: [`docs/recipes/pairings.md`](../docs/recipes/pairings.md).
 
 ---
 
@@ -428,7 +428,7 @@ Implementierungsdetails in `src/cli.ts` (siehe `runUpgrade` rund um den Bereich 
 
 ### Claude Code (ein Block, einfügen)
 
-```
+```text
 Install agentmemory: run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server. Then run `/plugin marketplace add rohitg00/agentmemory` and `/plugin install agentmemory` — the plugin registers all 12 hooks, 4 skills, AND auto-wires the `@agentmemory/mcp` stdio server via its `.mcp.json`, so you get 53 MCP tools (memory_smart_search, memory_save, memory_sessions, memory_governance_delete, etc.) without any extra config step. Verify with `curl http://localhost:3111/agentmemory/health`. The real-time viewer is at http://localhost:3113.
 ```
 
@@ -479,7 +479,7 @@ Das fügt einen idempotenten Block zu `~/.codex/hooks.json` hinzu, der absolute 
 <details>
 <summary><b>OpenClaw (diesen Prompt einfügen)</b></summary>
 
-```
+```text
 Install agentmemory for OpenClaw. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to my OpenClaw MCP config so agentmemory is available with all 51 memory tools:
 
 {
@@ -497,14 +497,14 @@ Install agentmemory for OpenClaw. Run `npx @agentmemory/agentmemory` in a separa
 Restart OpenClaw. Verify with `curl http://localhost:3111/agentmemory/health`. Open http://localhost:3113 for the real-time viewer. For deeper memory-slot integration, copy `integrations/openclaw` to `~/.openclaw/extensions/agentmemory` and enable `plugins.slots.memory = "agentmemory"` in `~/.openclaw/openclaw.json`.
 ```
 
-Vollständiger Leitfaden: [`integrations/openclaw/`](integrations/openclaw/)
+Vollständiger Leitfaden: [`integrations/openclaw/`](../integrations/openclaw/)
 
 </details>
 
 <details>
 <summary><b>Hermes Agent (diesen Prompt einfügen)</b></summary>
 
-```
+```text
 Install agentmemory for Hermes. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to ~/.hermes/config.yaml so Hermes can use agentmemory as an MCP server with all 51 memory tools:
 
 mcp_servers:
@@ -518,7 +518,7 @@ memory:
 Verify with `curl http://localhost:3111/agentmemory/health`. Open http://localhost:3113 for the real-time viewer. For deeper 6-hook memory provider integration (pre-LLM context injection, turn capture, MEMORY.md mirroring, system prompt block), copy integrations/hermes from the agentmemory repo to ~/.hermes/plugins/agentmemory.
 ```
 
-Vollständiger Leitfaden: [`integrations/hermes/`](integrations/hermes/)
+Vollständiger Leitfaden: [`integrations/hermes/`](../integrations/hermes/)
 
 </details>
 
@@ -548,13 +548,13 @@ Der agentmemory-Eintrag ist der **gleiche MCP-Server-Block** für jeden Host, de
 | **Cline / Roo Code / Kilo Code** | Cline-MCP-Einstellungen (Settings UI → MCP Servers → Edit) | Gleicher `mcpServers`-Block. |
 | **Windsurf** | `~/.codeium/windsurf/mcp_config.json` | Gleicher `mcpServers`-Block. |
 | **Gemini CLI** | `~/.gemini/settings.json` | `gemini mcp add agentmemory npx -y @agentmemory/mcp --scope user` (automatisches Mergen). |
-| **OpenClaw** | OpenClaw-MCP-Konfig | Gleicher `mcpServers`-Block oder das tiefer integrierte [Memory-Plugin](integrations/openclaw/). |
+| **OpenClaw** | OpenClaw-MCP-Konfig | Gleicher `mcpServers`-Block oder das tiefer integrierte [Memory-Plugin](../integrations/openclaw/). |
 | **Codex CLI (nur MCP)** | `.codex/config.toml` | TOML-Form: `codex mcp add agentmemory -- npx -y @agentmemory/mcp` oder `[mcp_servers.agentmemory]` manuell hinzufügen. |
 | **Codex CLI (volles Plugin)** | Codex-Plugin-Marketplace | `codex plugin marketplace add rohitg00/agentmemory`, dann `codex plugin add agentmemory@agentmemory`. Registriert MCP + 6 Lifecycle-Hooks (SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, Stop) + 4 Skills. Auf Codex Desktop zusätzlich `agentmemory connect codex --with-hooks` ausführen, bis [openai/codex#16430](https://github.com/openai/codex/issues/16430) landet — Plugin-Hooks sind dort derzeit lautlos. |
 | **OpenCode (nur MCP)** | `opencode.json` | Anderes Format — `mcp`-Schlüssel auf oberster Ebene, Command als Array: `{"mcp": {"agentmemory": {"type": "local", "command": ["npx", "-y", "@agentmemory/mcp"], "enabled": true}}}`. |
-| **OpenCode (volles Plugin)** | `plugin/opencode/` | 22 Auto-Capture-Hooks für Session-Lifecycle, Messages, Tools, Fehler. Zwei Slash-Befehle (`/recall`, `/remember`). Kopieren Sie `plugin/opencode/` in Ihren OpenCode-Workspace und fügen Sie den Plugin-Eintrag zu `opencode.json` hinzu. Siehe [`plugin/opencode/README.md`](plugin/opencode/README.md) für die vollständige Hook-Tabelle + Gap-Analyse. |
-| **pi** | `~/.pi/agent/extensions/agentmemory` | [`integrations/pi`](integrations/pi/) kopieren und pi neu starten. |
-| **Hermes Agent** | `~/.hermes/config.yaml` | Verwenden Sie das tiefer integrierte [Memory-Provider-Plugin](integrations/hermes/) mit `memory.provider: agentmemory`. |
+| **OpenCode (volles Plugin)** | `plugin/opencode/` | 22 Auto-Capture-Hooks für Session-Lifecycle, Messages, Tools, Fehler. Zwei Slash-Befehle (`/recall`, `/remember`). Kopieren Sie `plugin/opencode/` in Ihren OpenCode-Workspace und fügen Sie den Plugin-Eintrag zu `opencode.json` hinzu. Siehe [`plugin/opencode/README.md`](../plugin/opencode/README.md) für die vollständige Hook-Tabelle + Gap-Analyse. |
+| **pi** | `~/.pi/agent/extensions/agentmemory` | [`integrations/pi`](../integrations/pi/) kopieren und pi neu starten. |
+| **Hermes Agent** | `~/.hermes/config.yaml` | Verwenden Sie das tiefer integrierte [Memory-Provider-Plugin](../integrations/hermes/) mit `memory.provider: agentmemory`. |
 | **Qwen Code** | `~/.qwen/settings.json` | `agentmemory connect qwen` schreibt den standardmäßigen `mcpServers`-Block. Die Hook-Payload ist feldkompatibel mit Claude Code, sodass die bestehenden 12 Hook-Skripte ohne Änderung funktionieren — verdrahten Sie sie über den Abschnitt `hooks` in derselben `settings.json`. |
 | **Antigravity** (ersetzt Gemini CLI) | `mcp_config.json` (im User-Verzeichnis von Antigravity) | `agentmemory connect antigravity` schreibt den standardmäßigen `mcpServers`-Block. macOS: `~/Library/Application Support/Antigravity/User/`. Linux: `~/.config/Antigravity/User/`. Nach dem Sunset von Gemini CLI am 2026-06-18 zu nutzen. |
 | **Kiro** | `~/.kiro/settings/mcp.json` | `agentmemory connect kiro` schreibt die Konfig auf Benutzerebene. Workspace-Overrides liegen in `.kiro/settings/mcp.json` neben Ihrem Code. |
@@ -586,7 +586,7 @@ iii.trigger({
 })
 ```
 
-Vollständiges Beispiel: [`examples/python/`](examples/python/) (Quickstart + Beobachtungs-/Recall-Fluss). REST auf `:3111` bleibt verfügbar für Hosts ohne iii-Runtime.
+Vollständiges Beispiel: [`examples/python/`](../examples/python/) (Quickstart + Beobachtungs-/Recall-Fluss). REST auf `:3111` bleibt verfügbar für Hosts ohne iii-Runtime.
 
 ### Aus den Quellen
 
@@ -702,7 +702,7 @@ das SSH-Tunnel-Muster, um ihn zu erreichen.
 
 Jeder Coding-Agent vergisst alles, wenn die Session endet. Sie verschwenden die ersten 5 Minuten jeder Session damit, Ihren Stack erneut zu erklären. agentmemory läuft im Hintergrund und beseitigt das vollständig.
 
-```
+```text
 Session 1: "Add auth to the API"
   Agent writes code, runs tests, fixes bugs
   agentmemory silently captures every tool use
@@ -735,7 +735,7 @@ Jeder KI-Coding-Agent kommt mit eingebautem Memory — Claude Code hat `MEMORY.m
 
 ### Memory-Pipeline
 
-```
+```text
 PostToolUse hook fires
   -> SHA-256 dedup (5min window)
   -> Privacy filter (strip secrets, API keys)
@@ -1355,7 +1355,7 @@ CONSOLIDATION_ENABLED=true
 | `POST` | `/agentmemory/team/share` | Mit Team teilen |
 | `GET` | `/agentmemory/audit` | Audit-Trail |
 
-Volle Endpunktliste: [`src/triggers/api.ts`](src/triggers/api.ts)
+Volle Endpunktliste: [`src/triggers/api.ts`](../src/triggers/api.ts)
 
 </details>
 
@@ -1374,4 +1374,4 @@ npm run test:integration  # API tests (requires running services)
 
 <h2 id="license"><picture><source media="(prefers-color-scheme: dark)" srcset="../assets/tags/light/section-license.svg"><img src="../assets/tags/section-license.svg" alt="Lizenz" height="32" /></picture></h2>
 
-[Apache-2.0](LICENSE)
+[Apache-2.0](../LICENSE)

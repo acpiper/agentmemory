@@ -428,7 +428,7 @@ Uygulama detayları `src/cli.ts` içinde (`src/cli.ts:544-595` bölgesi civarın
 
 ### Claude Code (tek blok, yapıştırın)
 
-```
+```text
 Install agentmemory: run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server. Then run `/plugin marketplace add rohitg00/agentmemory` and `/plugin install agentmemory` — the plugin registers all 12 hooks, 4 skills, AND auto-wires the `@agentmemory/mcp` stdio server via its `.mcp.json`, so you get 53 MCP tools (memory_smart_search, memory_save, memory_sessions, memory_governance_delete, etc.) without any extra config step. Verify with `curl http://localhost:3111/agentmemory/health`. The real-time viewer is at http://localhost:3113.
 ```
 
@@ -479,7 +479,7 @@ Bu, `~/.codex/hooks.json`'a paketli scriptlere mutlak yollarla atıfta bulunan i
 <details>
 <summary><b>OpenClaw (bu istemi yapıştırın)</b></summary>
 
-```
+```text
 Install agentmemory for OpenClaw. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to my OpenClaw MCP config so agentmemory is available with all 51 memory tools:
 
 {
@@ -504,7 +504,7 @@ Tam kılavuz: [`integrations/openclaw/`](../integrations/openclaw/)
 <details>
 <summary><b>Hermes Agent (bu istemi yapıştırın)</b></summary>
 
-```
+```text
 Install agentmemory for Hermes. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to ~/.hermes/config.yaml so Hermes can use agentmemory as an MCP server with all 51 memory tools:
 
 mcp_servers:
@@ -706,7 +706,7 @@ desenini belgeler.
 
 Her kodlama ajanı, oturum sona erdiğinde her şeyi unutur. Her oturumun ilk 5 dakikasını yığınınızı yeniden anlatarak harcarsınız. agentmemory arka planda çalışır ve bunu tamamen ortadan kaldırır.
 
-```
+```text
 Session 1: "Add auth to the API"
   Agent writes code, runs tests, fixes bugs
   agentmemory silently captures every tool use
@@ -739,7 +739,7 @@ Her AI kodlama ajanı yerleşik bellekle gelir — Claude Code'da `MEMORY.md`, C
 
 ### Bellek Pipeline'ı
 
-```
+```text
 PostToolUse hook fires
   -> SHA-256 dedup (5min window)
   -> Privacy filter (strip secrets, API keys)

@@ -428,7 +428,7 @@ Implementation विवरण `src/cli.ts` में हैं (`src/cli.ts:544
 
 ### Claude Code (एक block, paste करें)
 
-```
+```text
 Install agentmemory: run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server. Then run `/plugin marketplace add rohitg00/agentmemory` and `/plugin install agentmemory` — the plugin registers all 12 hooks, 4 skills, AND auto-wires the `@agentmemory/mcp` stdio server via its `.mcp.json`, so you get 53 MCP tools (memory_smart_search, memory_save, memory_sessions, memory_governance_delete, etc.) without any extra config step. Verify with `curl http://localhost:3111/agentmemory/health`. The real-time viewer is at http://localhost:3113.
 ```
 
@@ -479,7 +479,7 @@ agentmemory connect codex --with-hooks
 <details>
 <summary><b>OpenClaw (यह prompt paste करें)</b></summary>
 
-```
+```text
 Install agentmemory for OpenClaw. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to my OpenClaw MCP config so agentmemory is available with all 51 memory tools:
 
 {
@@ -504,7 +504,7 @@ Restart OpenClaw. Verify with `curl http://localhost:3111/agentmemory/health`. O
 <details>
 <summary><b>Hermes Agent (यह prompt paste करें)</b></summary>
 
-```
+```text
 Install agentmemory for Hermes. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to ~/.hermes/config.yaml so Hermes can use agentmemory as an MCP server with all 51 memory tools:
 
 mcp_servers:
@@ -705,7 +705,7 @@ SSH-tunnel pattern को document करता है।
 
 हर coding agent सेशन समाप्त होने पर सब कुछ भूल जाता है। आप हर सेशन के पहले 5 मिनट अपने stack को फिर से समझाने में बर्बाद करते हैं। agentmemory पृष्ठभूमि में चलता है और इसे पूरी तरह से समाप्त कर देता है।
 
-```
+```text
 Session 1: "Add auth to the API"
   Agent writes code, runs tests, fixes bugs
   agentmemory silently captures every tool use
@@ -738,7 +738,7 @@ Session 2: "Now add rate limiting"
 
 ### Memory Pipeline
 
-```
+```text
 PostToolUse hook fires
   -> SHA-256 dedup (5min window)
   -> Privacy filter (strip secrets, API keys)

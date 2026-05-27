@@ -428,7 +428,7 @@ npx @agentmemory/agentmemory upgrade
 
 ### Claude Code (블록 한 번, 붙여넣기)
 
-```
+```text
 Install agentmemory: run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server. Then run `/plugin marketplace add rohitg00/agentmemory` and `/plugin install agentmemory` — the plugin registers all 12 hooks, 4 skills, AND auto-wires the `@agentmemory/mcp` stdio server via its `.mcp.json`, so you get 53 MCP tools (memory_smart_search, memory_save, memory_sessions, memory_governance_delete, etc.) without any extra config step. Verify with `curl http://localhost:3111/agentmemory/health`. The real-time viewer is at http://localhost:3113.
 ```
 
@@ -479,7 +479,7 @@ agentmemory connect codex --with-hooks
 <details>
 <summary><b>OpenClaw (이 프롬프트를 붙여넣으세요)</b></summary>
 
-```
+```text
 Install agentmemory for OpenClaw. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to my OpenClaw MCP config so agentmemory is available with all 51 memory tools:
 
 {
@@ -504,7 +504,7 @@ Restart OpenClaw. Verify with `curl http://localhost:3111/agentmemory/health`. O
 <details>
 <summary><b>Hermes Agent (이 프롬프트를 붙여넣으세요)</b></summary>
 
-```
+```text
 Install agentmemory for Hermes. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to ~/.hermes/config.yaml so Hermes can use agentmemory as an MCP server with all 51 memory tools:
 
 mcp_servers:
@@ -686,7 +686,7 @@ Render의 원클릭 배포 버튼은 저장소 루트에 `render.yaml`이 필요
 
 모든 코딩 에이전트는 세션이 끝나면 모든 것을 잊습니다. 매 세션의 첫 5분을 스택을 다시 설명하는 데 낭비합니다. agentmemory는 백그라운드에서 실행되어 이를 완전히 제거합니다.
 
-```
+```text
 Session 1: "Add auth to the API"
   Agent writes code, runs tests, fixes bugs
   agentmemory silently captures every tool use
@@ -719,7 +719,7 @@ Session 2: "Now add rate limiting"
 
 ### 메모리 파이프라인
 
-```
+```text
 PostToolUse hook fires
   -> SHA-256 dedup (5min window)
   -> Privacy filter (strip secrets, API keys)

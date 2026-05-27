@@ -428,7 +428,7 @@ Los detalles de implementación están en `src/cli.ts` (ver `runUpgrade` en torn
 
 ### Claude Code (un bloque, pégalo)
 
-```
+```text
 Install agentmemory: run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server. Then run `/plugin marketplace add rohitg00/agentmemory` and `/plugin install agentmemory` — the plugin registers all 12 hooks, 4 skills, AND auto-wires the `@agentmemory/mcp` stdio server via its `.mcp.json`, so you get 53 MCP tools (memory_smart_search, memory_save, memory_sessions, memory_governance_delete, etc.) without any extra config step. Verify with `curl http://localhost:3111/agentmemory/health`. The real-time viewer is at http://localhost:3113.
 ```
 
@@ -479,7 +479,7 @@ Esto añade un bloque idempotente a `~/.codex/hooks.json` que referencia rutas a
 <details>
 <summary><b>OpenClaw (pega este prompt)</b></summary>
 
-```
+```text
 Install agentmemory for OpenClaw. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to my OpenClaw MCP config so agentmemory is available with all 51 memory tools:
 
 {
@@ -504,7 +504,7 @@ Guía completa: [`integrations/openclaw/`](../integrations/openclaw/)
 <details>
 <summary><b>Hermes Agent (pega este prompt)</b></summary>
 
-```
+```text
 Install agentmemory for Hermes. Run `npx @agentmemory/agentmemory` in a separate terminal to start the memory server on localhost:3111. Then add this to ~/.hermes/config.yaml so Hermes can use agentmemory as an MCP server with all 51 memory tools:
 
 mcp_servers:
@@ -695,7 +695,7 @@ Solo se publica el puerto `3111`. El visor en `3113` permanece enlazado a loopba
 
 Todo agente de codificación olvida todo al terminar la sesión. Pierdes los primeros 5 minutos de cada sesión re-explicando tu stack. agentmemory corre en segundo plano y lo elimina por completo.
 
-```
+```text
 Session 1: "Add auth to the API"
   Agent writes code, runs tests, fixes bugs
   agentmemory silently captures every tool use
@@ -728,7 +728,7 @@ Todo agente de codificación con IA viene con memoria integrada — Claude Code 
 
 ### Pipeline de memoria
 
-```
+```text
 PostToolUse hook fires
   -> SHA-256 dedup (5min window)
   -> Privacy filter (strip secrets, API keys)
