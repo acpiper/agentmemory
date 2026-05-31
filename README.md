@@ -1173,7 +1173,13 @@ AWS_BEDROCK_MODEL=anthropic.claude-haiku-4-5-20251001-v1:0      # optional; this
 ```
 
 - **Credentials** come from the standard AWS credential provider chain — environment credentials, IAM roles, or an SSO profile cached under `~/.aws/sso/cache/` (select the profile with `AWS_PROFILE`). No static keys are required. To force static keys (e.g. in CI), set **both** `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-- **SSO** works out of the box, but agentmemory only *reads* the cached token — it cannot perform the login. Run `aws sso login --profile <name>` first, and again when the session expires. (A future release adds an auth-refresh hook to run this for you.)
+- **SSO** works out of the box, but agentmemory only *reads* the cached token — it cannot perform the login. Run `aws sso login --profile <name>` first, and again when the session expires. To re-establish an expired session automatically, set the auth-refresh hook below.
+- **Auth-refresh hook** (optional): when a Bedrock call fails with an expired-token error, agentmemory can run a command of your choosing and retry once:
+  ```bash
+  AWS_AUTH_REFRESH=aws sso login --profile my-sso-profile
+  AWS_AUTH_REFRESH_TIMEOUT_MS=120000     # optional, default 2 min
+  ```
+  The command is single-flighted (concurrent calls trigger it once), rate-limited by a short cooldown, and bounded by the timeout. **Security:** only the literal configured string is executed — via `execFile`, no shell, and no model or memory data is ever interpolated into it. Note that `aws sso login` is interactive (opens a browser), so this is best suited to setups where someone can approve the login or where the configured command refreshes credentials non-interactively.
 - **Model ID** defaults to Claude Haiku 4.5 (`anthropic.claude-haiku-4-5-20251001-v1:0`) — fast and cost-efficient for background compression. The bare on-demand ID only works in Regions that offer the model on-demand and where model access is enabled in the Bedrock console. In other Regions, set `AWS_BEDROCK_MODEL` to the geo-prefixed cross-region inference profile, e.g. `us.anthropic.claude-haiku-4-5-20251001-v1:0` (or `eu.…`).
 
 ### Local models (Ollama / LM Studio / vLLM)

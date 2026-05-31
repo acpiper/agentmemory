@@ -12,6 +12,7 @@ import { OpenAIProvider } from "./openai.js";
 import { OpenRouterProvider } from "./openrouter.js";
 import { ResilientProvider } from "./resilient.js";
 import { FallbackChainProvider } from "./fallback-chain.js";
+import { AuthRefresh } from "./auth-refresh.js";
 import { getEnvVar } from "../config.js";
 
 export { createEmbeddingProvider, createImageEmbeddingProvider } from "./embedding/index.js";
@@ -26,8 +27,27 @@ function requireEnvVar(key: string): string {
   return value;
 }
 
+/**
+ * Build the optional credential-refresh hook. Only the bedrock provider uses it
+ * today, and only when AWS_AUTH_REFRESH is set; the mechanism itself is generic.
+ */
+function createAuthRefresh(config: ProviderConfig): AuthRefresh | undefined {
+  if (config.provider !== "bedrock") return undefined;
+  const command = getEnvVar("AWS_AUTH_REFRESH");
+  if (!command || !command.trim()) return undefined;
+  const timeoutRaw = getEnvVar("AWS_AUTH_REFRESH_TIMEOUT_MS");
+  const timeoutMs = timeoutRaw ? parseInt(timeoutRaw, 10) : undefined;
+  return new AuthRefresh({
+    command,
+    timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : undefined,
+  });
+}
+
 export function createProvider(config: ProviderConfig): ResilientProvider {
-  return new ResilientProvider(createBaseProvider(config));
+  return new ResilientProvider(
+    createBaseProvider(config),
+    createAuthRefresh(config),
+  );
 }
 
 export function createFallbackProvider(
@@ -53,10 +73,14 @@ export function createFallbackProvider(
     }
   }
 
+  const authRefresh = createAuthRefresh(config);
   if (providers.length > 1) {
-    return new ResilientProvider(new FallbackChainProvider(providers));
+    return new ResilientProvider(
+      new FallbackChainProvider(providers),
+      authRefresh,
+    );
   }
-  return new ResilientProvider(providers[0]);
+  return new ResilientProvider(providers[0], authRefresh);
 }
 
 function createBaseProvider(config: ProviderConfig): MemoryProvider {
