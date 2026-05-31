@@ -163,4 +163,20 @@ describe("AuthRefresh — single-flight + cooldown", () => {
     await refresh.run(); // first succeeds
     await expect(refresh.run()).rejects.toThrow(/cooldown/);
   });
+
+  it("does NOT relaunch after a timeout (post-timeout suppression window)", async () => {
+    // `sleep 5` exceeds the 50ms timeout → execFile kills it → counts as a
+    // timed-out interactive login. cooldownMs:0 isolates the suppression path:
+    // any rejection on the next run() must come from post-timeout backoff, not
+    // the ordinary cooldown.
+    const refresh = new AuthRefresh({
+      command: "sleep 5",
+      timeoutMs: 50,
+      cooldownMs: 0,
+      postTimeoutCooldownMs: 60_000,
+    });
+    await expect(refresh.run()).rejects.toThrow(); // times out
+    // Second attempt must be suppressed, not relaunched (no new stale login).
+    await expect(refresh.run()).rejects.toThrow(/suppress|timed out/i);
+  });
 });
