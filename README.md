@@ -882,6 +882,7 @@ npm install @xenova/transformers
 | Voyage AI | `voyage-code-3` | Paid | Optimized for code |
 | Cohere | `embed-english-v3.0` | Free trial | General purpose |
 | OpenRouter | Any model | Varies | Multi-model proxy |
+| AWS Bedrock | `cohere.embed-v4:0` (default), `amazon.titan-embed-text-v2:0` | Paid (AWS) | Set `EMBEDDING_PROVIDER=bedrock`; creds via AWS chain / SSO; default 1024-dim. See [AWS Bedrock](#aws-bedrock). |
 
 ---
 
@@ -1181,6 +1182,7 @@ AWS_BEDROCK_MODEL=anthropic.claude-haiku-4-5-20251001-v1:0      # optional; this
   ```
   The command is single-flighted (concurrent calls trigger it once), rate-limited by a short cooldown, and bounded by the timeout. **Security:** only the literal configured string is executed — via `execFile`, no shell, and no model or memory data is ever interpolated into it. Note that `aws sso login` is interactive (opens a browser), so this is best suited to setups where someone can approve the login or where the configured command refreshes credentials non-interactively.
 - **Model ID** defaults to Claude Haiku 4.5 (`anthropic.claude-haiku-4-5-20251001-v1:0`) — fast and cost-efficient for background compression. The bare on-demand ID only works in Regions that offer the model on-demand and where model access is enabled in the Bedrock console. In other Regions, set `AWS_BEDROCK_MODEL` to the geo-prefixed cross-region inference profile, e.g. `us.anthropic.claude-haiku-4-5-20251001-v1:0` (or `eu.…`).
+- **Embeddings on Bedrock** (separate from the LLM): set `EMBEDDING_PROVIDER=bedrock` to use Cohere / Titan embeddings via the same AWS credentials. It is *not* auto-enabled by `AWS_BEDROCK=true` — so you can run the Bedrock LLM with local (or any other) embeddings. Defaults to `cohere.embed-v4:0` at 1024 dims; override with `AWS_BEDROCK_EMBEDDING_MODEL` / `AWS_BEDROCK_EMBEDDING_DIMENSIONS`. As with the LLM, some embedding models aren't available on-demand in every Region — `cohere.embed-v4:0` is inference-profile-only in several Regions, so set the geo-prefixed ID there, e.g. `AWS_BEDROCK_EMBEDDING_MODEL=us.cohere.embed-v4:0` (Titan v2 works on-demand with the bare ID). The dimension is baked into the vector index, so changing it later means re-embedding stored memories.
 
 ### Local models (Ollama / LM Studio / vLLM)
 
