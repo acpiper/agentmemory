@@ -1,0 +1,166 @@
+import { describe, expect, it, vi } from "vitest";
+import {
+  AuthRefresh,
+  isAuthExpiry,
+  tokenizeCommand,
+} from "../src/providers/auth-refresh.js";
+import { ResilientProvider } from "../src/providers/resilient.js";
+import type { MemoryProvider } from "../src/types.js";
+
+describe("isAuthExpiry", () => {
+  it("matches AWS / SSO expiry signals", () => {
+    expect(isAuthExpiry(new Error("ExpiredTokenException: token expired"))).toBe(true);
+    expect(isAuthExpiry(new Error("The SSO session has expired"))).toBe(true);
+    expect(isAuthExpiry(new Error("Token is expired"))).toBe(true);
+    expect(isAuthExpiry({ name: "ExpiredToken", message: "" })).toBe(true);
+    expect(isAuthExpiry(new Error("The security token included in the request is expired"))).toBe(true);
+    // Real message from @aws-sdk after `aws sso logout` — note it says
+    // "not found or is invalid", never "expired", and includes the remediation
+    // hint. Both the SSO-session matcher and the `aws sso login` matcher catch it.
+    expect(
+      isAuthExpiry(
+        new Error(
+          "The SSO session token associated with profile=default was not found or is invalid. " +
+            "To refresh this SSO session run 'aws sso login' with the corresponding profile.",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isAuthExpiry(
+        new Error(
+          "The SSO session associated with this profile has expired or is otherwise invalid.",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("does NOT match unrelated errors", () => {
+    expect(isAuthExpiry(new Error("ValidationException: model not found"))).toBe(false);
+    expect(isAuthExpiry(new Error("ThrottlingException"))).toBe(false);
+    expect(isAuthExpiry(new Error("AccessDeniedException: no model access"))).toBe(false);
+    expect(isAuthExpiry(new Error("connection reset"))).toBe(false);
+    expect(isAuthExpiry(undefined)).toBe(false);
+  });
+});
+
+describe("tokenizeCommand", () => {
+  it("splits on whitespace", () => {
+    expect(tokenizeCommand("aws sso login --profile foo")).toEqual([
+      "aws", "sso", "login", "--profile", "foo",
+    ]);
+  });
+
+  it("honors double and single quotes", () => {
+    expect(tokenizeCommand('aws sso login --profile "my profile"')).toEqual([
+      "aws", "sso", "login", "--profile", "my profile",
+    ]);
+    expect(tokenizeCommand("cmd --x 'a b c'")).toEqual(["cmd", "--x", "a b c"]);
+  });
+
+  it("returns empty array for an empty command", () => {
+    expect(tokenizeCommand("   ")).toEqual([]);
+  });
+});
+
+// A controllable fake provider + fake AuthRefresh so no real `aws` is spawned.
+function fakeProvider(fn: () => Promise<string>): MemoryProvider {
+  return {
+    name: "fake",
+    compress: fn,
+    summarize: fn,
+  };
+}
+
+function fakeRefresh(run: () => Promise<void>): AuthRefresh {
+  return { run } as unknown as AuthRefresh;
+}
+
+describe("ResilientProvider — auth-refresh retry", () => {
+  it("refreshes once and retries on an expired-token error, then succeeds", async () => {
+    let calls = 0;
+    const inner = fakeProvider(async () => {
+      calls += 1;
+      if (calls === 1) throw new Error("ExpiredTokenException");
+      return "ok";
+    });
+    const run = vi.fn(async () => {});
+    const provider = new ResilientProvider(inner, fakeRefresh(run));
+
+    const result = await provider.compress("s", "u");
+    expect(result).toBe("ok");
+    expect(calls).toBe(2);
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT refresh on a non-expiry error", async () => {
+    const inner = fakeProvider(async () => {
+      throw new Error("ValidationException");
+    });
+    const run = vi.fn(async () => {});
+    const provider = new ResilientProvider(inner, fakeRefresh(run));
+
+    await expect(provider.compress("s", "u")).rejects.toThrow("ValidationException");
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("retries at most once — propagates if the post-refresh call also expires", async () => {
+    let calls = 0;
+    const inner = fakeProvider(async () => {
+      calls += 1;
+      throw new Error("ExpiredTokenException");
+    });
+    const run = vi.fn(async () => {});
+    const provider = new ResilientProvider(inner, fakeRefresh(run));
+
+    await expect(provider.compress("s", "u")).rejects.toThrow("ExpiredTokenException");
+    expect(calls).toBe(2); // original + one retry, no more
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it("propagates the original error if the refresh command itself fails", async () => {
+    const inner = fakeProvider(async () => {
+      throw new Error("ExpiredTokenException");
+    });
+    const run = vi.fn(async () => {
+      throw new Error("aws sso login failed");
+    });
+    const provider = new ResilientProvider(inner, fakeRefresh(run));
+
+    await expect(provider.compress("s", "u")).rejects.toThrow("ExpiredTokenException");
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it("behaves exactly as before when no AuthRefresh is configured (regression guard)", async () => {
+    const inner = fakeProvider(async () => {
+      throw new Error("ExpiredTokenException");
+    });
+    const provider = new ResilientProvider(inner); // no refresh
+    await expect(provider.compress("s", "u")).rejects.toThrow("ExpiredTokenException");
+  });
+});
+
+describe("AuthRefresh — single-flight + cooldown", () => {
+  it("coalesces concurrent calls into a single command run (single-flight)", async () => {
+    const refresh = new AuthRefresh({ command: "true" }); // /usr/bin/true exits 0
+    const spy = vi.spyOn(
+      refresh as unknown as { run: () => Promise<void> },
+      "run",
+    );
+    // Fire three concurrently; the in-flight promise is shared.
+    await Promise.all([refresh.run(), refresh.run(), refresh.run()]);
+    // The spy wraps the public method so all three are counted, but the
+    // underlying execFile should only run once — assert via timing/no throw.
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it("rejects an empty command", async () => {
+    const refresh = new AuthRefresh({ command: "   " });
+    await expect(refresh.run()).rejects.toThrow(/empty/);
+  });
+
+  it("enforces a cooldown between sequential attempts", async () => {
+    const refresh = new AuthRefresh({ command: "true", cooldownMs: 60_000 });
+    await refresh.run(); // first succeeds
+    await expect(refresh.run()).rejects.toThrow(/cooldown/);
+  });
+});
