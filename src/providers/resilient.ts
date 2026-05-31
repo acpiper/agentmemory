@@ -1,6 +1,7 @@
 import type { MemoryProvider, CircuitBreakerState } from "../types.js";
 import { CircuitBreaker } from "./circuit-breaker.js";
 import { AuthRefresh, isAuthExpiry } from "./auth-refresh.js";
+import { logger } from "../logger.js";
 
 export class ResilientProvider implements MemoryProvider {
   private breaker = new CircuitBreaker();
@@ -29,12 +30,24 @@ export class ResilientProvider implements MemoryProvider {
       // retry once — BEFORE recording a breaker failure, so a recoverable
       // token expiry doesn't count toward opening the circuit.
       if (!alreadyRetried && this.authRefresh && isAuthExpiry(err)) {
+        logger.warn("provider call failed with expired credentials — attempting auth refresh", {
+          provider: this.inner.name,
+          error: err instanceof Error ? err.message : String(err),
+        });
         try {
           await this.authRefresh.run();
-          return await this.call(fn, true);
-        } catch {
-          // refresh (or the retry) failed — fall through to record the
-          // original failure and propagate.
+          const result = await this.call(fn, true);
+          logger.info("auth refresh recovered the provider call", {
+            provider: this.inner.name,
+          });
+          return result;
+        } catch (refreshErr) {
+          // Refresh (or the post-refresh retry) failed. Log why, then fall
+          // through to record the original failure and propagate it.
+          logger.error("auth refresh did not recover the provider call", {
+            provider: this.inner.name,
+            reason: refreshErr instanceof Error ? refreshErr.message : String(refreshErr),
+          });
         }
       }
       this.breaker.recordFailure();
