@@ -1153,12 +1153,28 @@ agentmemory auto-detects from your environment. By default, no LLM calls are mad
 |----------|--------|-------|
 | **No-op (default)** | No config needed | LLM-backed compress/summarize is DISABLED. Synthetic BM25 compression + recall still work. See `AGENTMEMORY_ALLOW_AGENT_SDK` below if you used to rely on the Claude-subscription fallback. |
 | Anthropic API | `ANTHROPIC_API_KEY` | Per-token billing |
+| AWS Bedrock | `AWS_BEDROCK=true` + `AWS_REGION` | Anthropic models on Bedrock. Opt-in flag, takes precedence when set. Creds from the AWS provider chain — env / IAM role / SSO cache (`AWS_PROFILE`). Default model Claude Haiku 4.5; see [AWS Bedrock](#aws-bedrock) below. |
 | MiniMax | `MINIMAX_API_KEY` | Anthropic-compatible |
 | Gemini | `GEMINI_API_KEY` | Also enables embeddings |
 | OpenRouter | `OPENROUTER_API_KEY` | Any model |
 | OpenAI API | `OPENAI_API_KEY` | Default `gpt-4o-mini`, override with `OPENAI_MODEL` |
 | **Local (Ollama / LM Studio / vLLM / llama.cpp)** | `OPENAI_API_KEY=local` + `OPENAI_BASE_URL=http://localhost:11434/v1` (Ollama) or `http://localhost:1234/v1` (LM Studio) + `OPENAI_MODEL=<your model>` | Anything OpenAI-API-compatible. Zero cost, runs on your hardware. See [Local models](#local-models-ollama-lm-studio-vllm) below. |
 | Claude subscription fallback | `AGENTMEMORY_ALLOW_AGENT_SDK=true` | Opt-in only. Spawns `@anthropic-ai/claude-agent-sdk` sessions — used to cause unbounded Stop-hook recursion (#149 follow-up) so it is no longer the default. |
+
+### AWS Bedrock
+
+Run Anthropic models hosted on AWS Bedrock as the LLM provider. Opt in with `AWS_BEDROCK=true`; when set it takes precedence over the other provider keys.
+
+```bash
+AWS_BEDROCK=true
+AWS_REGION=us-east-1
+AWS_PROFILE=my-sso-profile                                  # optional
+AWS_BEDROCK_MODEL=anthropic.claude-haiku-4-5-20251001-v1:0      # optional; this is the default
+```
+
+- **Credentials** come from the standard AWS credential provider chain — environment credentials, IAM roles, or an SSO profile cached under `~/.aws/sso/cache/` (select the profile with `AWS_PROFILE`). No static keys are required. To force static keys (e.g. in CI), set **both** `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+- **SSO** works out of the box, but agentmemory only *reads* the cached token — it cannot perform the login. Run `aws sso login --profile <name>` first, and again when the session expires. (A future release adds an auth-refresh hook to run this for you.)
+- **Model ID** defaults to Claude Haiku 4.5 (`anthropic.claude-haiku-4-5-20251001-v1:0`) — fast and cost-efficient for background compression. The bare on-demand ID only works in Regions that offer the model on-demand and where model access is enabled in the Bedrock console. In other Regions, set `AWS_BEDROCK_MODEL` to the geo-prefixed cross-region inference profile, e.g. `us.anthropic.claude-haiku-4-5-20251001-v1:0` (or `eu.…`).
 
 ### Local models (Ollama / LM Studio / vLLM)
 

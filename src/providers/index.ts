@@ -5,6 +5,7 @@ import type {
 } from "../types.js";
 import { AgentSDKProvider } from "./agent-sdk.js";
 import { AnthropicProvider } from "./anthropic.js";
+import { BedrockProvider } from "./bedrock.js";
 import { MinimaxProvider } from "./minimax.js";
 import { NoopProvider } from "./noop.js";
 import { OpenAIProvider } from "./openai.js";
@@ -72,6 +73,15 @@ function createBaseProvider(config: ProviderConfig): MemoryProvider {
         config.model,
         config.maxTokens,
         config.baseURL,
+      );
+    case "bedrock":
+      // No requireEnvVar for a key: creds may come from the AWS credential
+      // provider chain (SSO cache / IAM role) with no env var set. A region is
+      // mandatory for Bedrock, though.
+      return new BedrockProvider(
+        config.model,
+        config.maxTokens,
+        requireEnvVar("AWS_REGION"),
       );
     case "gemini": {
       const geminiKey =

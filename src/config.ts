@@ -49,8 +49,27 @@ function hasRealValue(v: string | undefined): v is string {
   return typeof v === "string" && v.trim().length > 0;
 }
 
-function detectProvider(env: Record<string, string>): ProviderConfig {
+export function detectProvider(env: Record<string, string>): ProviderConfig {
   const maxTokens = parseInt(env["MAX_TOKENS"] || "4096", 10);
+
+  // AWS Bedrock: explicit opt-in via AWS_BEDROCK=true. Placed first so a machine
+  // with both Ollama and Bedrock configured prefers Bedrock when opted in; the
+  // strict flag gate means it never fires for existing OpenAI/Ollama users.
+  // Credentials come from the AWS provider chain (env / IAM role / SSO cache),
+  // so we do NOT key detection on credential env vars — only the flag + region.
+  if (env["AWS_BEDROCK"] === "true") {
+    if (!hasRealValue(env["AWS_REGION"])) {
+      process.stderr.write(
+        "[agentmemory] AWS_BEDROCK=true but AWS_REGION is unset. " +
+          "Bedrock requires a region — set AWS_REGION in ~/.agentmemory/.env.\n",
+      );
+    }
+    return {
+      provider: "bedrock",
+      model: env["AWS_BEDROCK_MODEL"] || "anthropic.claude-haiku-4-5-20251001-v1:0",
+      maxTokens,
+    };
+  }
 
   // OpenAI-compatible: supports OpenAI, DeepSeek, SiliconFlow, Azure, vLLM, LM Studio
   if (hasRealValue(env["OPENAI_API_KEY"]) && env["OPENAI_API_KEY_FOR_LLM"] !== "false") {
@@ -191,6 +210,7 @@ export function isDropStaleIndexEnabled(): boolean {
 export function detectLlmProviderKind(): "llm" | "noop" {
   const env = getMergedEnv();
   if (
+    env["AWS_BEDROCK"] === "true" ||
     hasRealValue(env["ANTHROPIC_API_KEY"]) ||
     hasRealValue(env["GEMINI_API_KEY"]) ||
     hasRealValue(env["GOOGLE_API_KEY"]) ||
