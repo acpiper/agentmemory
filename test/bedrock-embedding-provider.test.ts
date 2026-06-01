@@ -128,6 +128,14 @@ describe("BedrockEmbeddingProvider", () => {
     });
   });
 
+  it("throws when the response returns fewer vectors than inputs (no silent misalignment)", async () => {
+    // Two inputs, but the model returns one vector — must fail fast rather than
+    // misalign texts to vectors downstream.
+    cannedResponse = () => ({ embeddings: { float: [new Array(1024).fill(0.1)] } });
+    const p = new BedrockEmbeddingProvider();
+    await expect(p.embedBatch(["one", "two"])).rejects.toThrow(/1 vectors for 2 inputs|misalign/);
+  });
+
   it("parses the bare-array response shape for Cohere v3", async () => {
     process.env["AWS_BEDROCK_EMBEDDING_MODEL"] = "cohere.embed-english-v3";
     cannedResponse = (body) => {

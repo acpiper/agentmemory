@@ -166,6 +166,15 @@ export class BedrockEmbeddingProvider implements EmbeddingProvider {
       const rows = Array.isArray(embeddings)
         ? (embeddings as number[][])
         : (embeddings.float ?? []);
+      // Fail fast on a cardinality mismatch: fewer rows than inputs would
+      // silently misalign texts to vectors downstream (withDimensionGuard only
+      // checks each vector's length, not the batch count).
+      if (rows.length !== slice.length) {
+        throw new Error(
+          `Bedrock embedding returned ${rows.length} vectors for ${slice.length} inputs ` +
+            `(model "${this.model}") — refusing to misalign texts to vectors.`,
+        );
+      }
       for (const row of rows) out.push(new Float32Array(row));
     }
     return out;
