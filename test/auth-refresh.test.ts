@@ -1,4 +1,25 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// Controllable execFile mock: records call count and lets each test decide how
+// the spawned command resolves (success / error / timeout), so single-flight and
+// cooldown can be asserted on the REAL underlying call count rather than a spy on
+// the public method — and without depending on a host `true`/`sleep` binary.
+const execFileCalls: Array<{ cmd: string; args: string[] }> = [];
+let execFileBehavior: (cmd: string) => Error | null = () => null;
+
+vi.mock("node:child_process", () => ({
+  execFile: (
+    cmd: string,
+    args: string[],
+    _opts: unknown,
+    cb: (err: Error | null) => void,
+  ) => {
+    execFileCalls.push({ cmd, args });
+    // Resolve on a microtask so concurrent run() calls share one in-flight promise.
+    queueMicrotask(() => cb(execFileBehavior(cmd)));
+  },
+}));
+
 import {
   AuthRefresh,
   isAuthExpiry,
@@ -140,43 +161,51 @@ describe("ResilientProvider — auth-refresh retry", () => {
 });
 
 describe("AuthRefresh — single-flight + cooldown", () => {
+  beforeEach(() => {
+    execFileCalls.length = 0;
+    execFileBehavior = () => null; // default: command succeeds
+  });
+  afterEach(() => {
+    execFileBehavior = () => null;
+  });
+
   it("coalesces concurrent calls into a single command run (single-flight)", async () => {
-    const refresh = new AuthRefresh({ command: "true" }); // /usr/bin/true exits 0
-    const spy = vi.spyOn(
-      refresh as unknown as { run: () => Promise<void> },
-      "run",
-    );
-    // Fire three concurrently; the in-flight promise is shared.
+    const refresh = new AuthRefresh({ command: "aws sso login --profile p" });
+    // Fire three concurrently; they share one in-flight promise, so execFile —
+    // the REAL underlying spawn — must run exactly once.
     await Promise.all([refresh.run(), refresh.run(), refresh.run()]);
-    // The spy wraps the public method so all three are counted, but the
-    // underlying execFile should only run once — assert via timing/no throw.
-    expect(spy).toHaveBeenCalled();
+    expect(execFileCalls).toHaveLength(1);
+    expect(execFileCalls[0]).toEqual({ cmd: "aws", args: ["sso", "login", "--profile", "p"] });
   });
 
   it("rejects an empty command", async () => {
     const refresh = new AuthRefresh({ command: "   " });
     await expect(refresh.run()).rejects.toThrow(/empty/);
+    expect(execFileCalls).toHaveLength(0);
   });
 
-  it("enforces a cooldown between sequential attempts", async () => {
-    const refresh = new AuthRefresh({ command: "true", cooldownMs: 60_000 });
-    await refresh.run(); // first succeeds
+  it("enforces a cooldown between sequential attempts (no second spawn)", async () => {
+    const refresh = new AuthRefresh({ command: "aws sso login", cooldownMs: 60_000 });
+    await refresh.run(); // first succeeds → 1 spawn
     await expect(refresh.run()).rejects.toThrow(/cooldown/);
+    expect(execFileCalls).toHaveLength(1); // cooldown blocked the second spawn
   });
 
   it("does NOT relaunch after a timeout (post-timeout suppression window)", async () => {
-    // `sleep 5` exceeds the 50ms timeout → execFile kills it → counts as a
-    // timed-out interactive login. cooldownMs:0 isolates the suppression path:
-    // any rejection on the next run() must come from post-timeout backoff, not
-    // the ordinary cooldown.
+    // Make the mocked command resolve with a timeout-shaped error (execFile sets
+    // killed:true + SIGTERM on timeout). cooldownMs:0 isolates the suppression
+    // path: any rejection on the next run() must come from post-timeout backoff.
+    execFileBehavior = () =>
+      Object.assign(new Error("timed out"), { killed: true, signal: "SIGTERM" });
     const refresh = new AuthRefresh({
-      command: "sleep 5",
+      command: "aws sso login",
       timeoutMs: 50,
       cooldownMs: 0,
       postTimeoutCooldownMs: 60_000,
     });
-    await expect(refresh.run()).rejects.toThrow(); // times out
+    await expect(refresh.run()).rejects.toThrow(); // times out → 1 spawn
     // Second attempt must be suppressed, not relaunched (no new stale login).
     await expect(refresh.run()).rejects.toThrow(/suppress|timed out/i);
+    expect(execFileCalls).toHaveLength(1); // suppression blocked the relaunch
   });
 });
