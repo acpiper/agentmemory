@@ -1174,7 +1174,7 @@ AWS_BEDROCK_MODEL=anthropic.claude-haiku-4-5-20251001-v1:0      # optional; this
 ```
 
 - **Credentials** come from the standard AWS credential provider chain — environment credentials, IAM roles, or an SSO profile cached under `~/.aws/sso/cache/` (select the profile with `AWS_PROFILE`). No static keys are required. To force static keys (e.g. in CI), set **both** `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
-- **SSO** works out of the box, but agentmemory only *reads* the cached token — it cannot perform the login. Run `aws sso login --profile <name>` first, and again when the session expires. To re-establish an expired session automatically, set the auth-refresh hook below.
+- **SSO** works out of the box, but agentmemory only *reads* the cached token — it cannot perform the login. Run `aws sso login --profile <name>` first. When the session expires, either re-run it manually or configure the auth-refresh hook (below) to automate re-authentication.
 - **Auth-refresh hook** (optional): when a Bedrock call fails with an expired-token error, agentmemory can run a command of your choosing and retry once:
   ```bash
   AWS_AUTH_REFRESH=aws sso login --profile my-sso-profile
