@@ -98,6 +98,13 @@ describe("detectProvider — bedrock branch", () => {
     expect(config.provider).not.toBe("bedrock");
   });
 
+  it("selects bedrock for a case-insensitive AWS_BEDROCK (True/TRUE/ true )", () => {
+    for (const flag of ["True", "TRUE", " true "]) {
+      const config = detectProvider({ AWS_BEDROCK: flag, AWS_REGION: "us-east-1" });
+      expect(config.provider).toBe("bedrock");
+    }
+  });
+
   it("rejects bedrock when AWS_REGION is unset and falls through to the next provider", () => {
     // AWS_BEDROCK=true but no region → Bedrock can't be constructed, so detection
     // must not return an unusable bedrock config; it falls through to OpenAI here.

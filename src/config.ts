@@ -50,13 +50,31 @@ function hasRealValue(v: string | undefined): v is string {
 }
 
 /**
+ * Case-insensitive boolean-env check. Accepts "true" in any case with
+ * surrounding whitespace (e.g. "True", "TRUE", " true ") so a natural
+ * capitalization of AWS_BEDROCK=True doesn't silently disable Bedrock.
+ */
+function isEnvTrue(v: string | undefined): boolean {
+  return typeof v === "string" && v.trim().toLowerCase() === "true";
+}
+
+/**
+ * Bedrock is opted in when AWS_BEDROCK is truthy. The AWS_BEDROCK === "true"
+ * gate in detectProvider and the usability check below share this so both
+ * accept the same set of values.
+ */
+function isBedrockOptIn(env: Record<string, string>): boolean {
+  return isEnvTrue(env["AWS_BEDROCK"]);
+}
+
+/**
  * Bedrock is usable only when opted in (AWS_BEDROCK=true) AND a region is set —
  * the AWS SDK needs a region to construct a client. Shared between detectProvider
  * and detectLlmProviderKind so capability detection never reports a Bedrock
  * config that cannot actually be built.
  */
 function isBedrockUsable(env: Record<string, string>): boolean {
-  return env["AWS_BEDROCK"] === "true" && hasRealValue(env["AWS_REGION"]);
+  return isBedrockOptIn(env) && hasRealValue(env["AWS_REGION"]);
 }
 
 export function detectProvider(env: Record<string, string>): ProviderConfig {
@@ -69,7 +87,7 @@ export function detectProvider(env: Record<string, string>): ProviderConfig {
   // so we do NOT key detection on credential env vars — only the flag + region.
   // Region is mandatory: without it Bedrock cannot be constructed, so we reject
   // here and fall through rather than returning an unusable bedrock config.
-  if (env["AWS_BEDROCK"] === "true") {
+  if (isBedrockOptIn(env)) {
     if (isBedrockUsable(env)) {
       return {
         provider: "bedrock",
