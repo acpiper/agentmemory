@@ -1,6 +1,7 @@
 import type {
   MemoryProvider,
   ProviderConfig,
+  ProviderType,
   FallbackConfig,
 } from "../types.js";
 import { AgentSDKProvider } from "./agent-sdk.js";
@@ -30,9 +31,11 @@ function requireEnvVar(key: string): string {
 /**
  * Build the optional credential-refresh hook. Only the bedrock provider uses it
  * today, and only when AWS_AUTH_REFRESH is set; the mechanism itself is generic.
+ * Accepts every provider type that may be invoked (primary + fallback chain) so
+ * a bedrock provider reachable only via the fallback path still gets the hook.
  */
-function createAuthRefresh(config: ProviderConfig): AuthRefresh | undefined {
-  if (config.provider !== "bedrock") return undefined;
+function createAuthRefresh(providerTypes: ProviderType[]): AuthRefresh | undefined {
+  if (!providerTypes.includes("bedrock")) return undefined;
   const command = getEnvVar("AWS_AUTH_REFRESH");
   if (!command || !command.trim()) return undefined;
   const timeoutRaw = getEnvVar("AWS_AUTH_REFRESH_TIMEOUT_MS");
@@ -46,7 +49,7 @@ function createAuthRefresh(config: ProviderConfig): AuthRefresh | undefined {
 export function createProvider(config: ProviderConfig): ResilientProvider {
   return new ResilientProvider(
     createBaseProvider(config),
-    createAuthRefresh(config),
+    createAuthRefresh([config.provider]),
   );
 }
 
@@ -59,6 +62,7 @@ export function createFallbackProvider(
   }
 
   const providers: MemoryProvider[] = [createBaseProvider(config)];
+  const builtTypes: ProviderType[] = [config.provider];
   for (const providerType of fallbackConfig.providers) {
     if (providerType === config.provider) continue;
     try {
@@ -68,12 +72,16 @@ export function createFallbackProvider(
         maxTokens: config.maxTokens,
       };
       providers.push(createBaseProvider(fbConfig));
+      builtTypes.push(providerType);
     } catch {
       // skip unavailable fallback providers
     }
   }
 
-  const authRefresh = createAuthRefresh(config);
+  // Derive the refresh hook from every provider actually built (primary +
+  // fallbacks), so a bedrock provider reachable only via the fallback chain
+  // still refreshes expired credentials.
+  const authRefresh = createAuthRefresh(builtTypes);
   if (providers.length > 1) {
     return new ResilientProvider(
       new FallbackChainProvider(providers),
