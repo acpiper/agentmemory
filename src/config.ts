@@ -92,21 +92,12 @@ function isEnvTrue(v: string | undefined): boolean {
   return typeof v === "string" && v.trim().toLowerCase() === "true";
 }
 
-/**
- * Bedrock is opted in when AWS_BEDROCK is truthy. The AWS_BEDROCK === "true"
- * gate in detectProvider and the usability check below share this so both
- * accept the same set of values.
- */
+/** Shared so detectProvider and isBedrockUsable gate on the same opt-in values. */
 function isBedrockOptIn(env: Record<string, string>): boolean {
   return isEnvTrue(env["AWS_BEDROCK"]);
 }
 
-/**
- * Bedrock is usable only when opted in (AWS_BEDROCK=true) AND a region is set —
- * the AWS SDK needs a region to construct a client. Shared between detectProvider
- * and detectLlmProviderKind so capability detection never reports a Bedrock
- * config that cannot actually be built.
- */
+/** A region is required to construct the client, so capability detection never reports an unbuildable config. */
 function isBedrockUsable(env: Record<string, string>): boolean {
   return isBedrockOptIn(env) && hasRealValue(env["AWS_REGION"]);
 }
