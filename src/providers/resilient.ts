@@ -34,20 +34,27 @@ export class ResilientProvider implements MemoryProvider {
           provider: this.inner.name,
           error: err instanceof Error ? err.message : String(err),
         });
+        // Scope this catch to the refresh command ONLY. If refresh succeeds, the
+        // retry runs outside the try so its own error (and breaker accounting)
+        // propagates normally — otherwise a failed retry would surface the stale
+        // auth-expiry error and double-count the breaker (once in the retried
+        // call, once here).
+        let refreshed = false;
         try {
           await this.authRefresh.run();
+          refreshed = true;
+        } catch (refreshErr) {
+          logger.error("auth refresh command did not run", {
+            provider: this.inner.name,
+            reason: refreshErr instanceof Error ? refreshErr.message : String(refreshErr),
+          });
+        }
+        if (refreshed) {
           const result = await this.call(fn, true);
           logger.info("auth refresh recovered the provider call", {
             provider: this.inner.name,
           });
           return result;
-        } catch (refreshErr) {
-          // Refresh (or the post-refresh retry) failed. Log why, then fall
-          // through to record the original failure and propagate it.
-          logger.error("auth refresh did not recover the provider call", {
-            provider: this.inner.name,
-            reason: refreshErr instanceof Error ? refreshErr.message : String(refreshErr),
-          });
         }
       }
       this.breaker.recordFailure();
