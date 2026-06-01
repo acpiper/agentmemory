@@ -97,4 +97,16 @@ describe("detectProvider — bedrock branch", () => {
     });
     expect(config.provider).not.toBe("bedrock");
   });
+
+  it("rejects bedrock when AWS_REGION is unset and falls through to the next provider", () => {
+    // AWS_BEDROCK=true but no region → Bedrock can't be constructed, so detection
+    // must not return an unusable bedrock config; it falls through to OpenAI here.
+    const config = detectProvider({ AWS_BEDROCK: "true", OPENAI_API_KEY: "sk-test" });
+    expect(config.provider).toBe("openai");
+  });
+
+  it("falls through to noop when AWS_BEDROCK=true but no region and no other provider", () => {
+    const config = detectProvider({ AWS_BEDROCK: "true" });
+    expect(config.provider).toBe("noop");
+  });
 });
