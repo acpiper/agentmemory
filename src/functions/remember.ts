@@ -55,9 +55,7 @@ export function registerRememberFunction(sdk: ISdk, kv: StateKV): void {
       // not schema-invalid: it saves, with type/concepts/files/project silently
       // left at their defaults and the markup embedded in the memory. Refuse it
       // so the caller resends instead. More than one marker is required, so
-      // content that legitimately mentions one of these tags still saves. Count
-      // occurrences, not matched categories, so two leaked <type> tags trip this
-      // as surely as one <type> plus one <concepts>.
+      // content that legitimately mentions one of these tags still saves.
       const markerCount = ARG_LEAK_PATTERNS.reduce(
         (count, p) => count + (data.content.match(new RegExp(p.source, p.flags + "g"))?.length ?? 0),
         0,
