@@ -1278,11 +1278,11 @@ export function registerMcpEndpoints(
               body: { error: `Unknown tool: ${name}` },
             };
         }
-      } catch (err) {
+      } catch {
         return {
           status_code: 500,
           body: {
-            error: err instanceof Error ? err.message : String(err),
+            error: "Internal error",
           },
         };
       }
