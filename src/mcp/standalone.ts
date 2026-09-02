@@ -391,9 +391,6 @@ export async function handleToolCall(
         process.stderr.write(
           `[@agentmemory/mcp] proxy call failed for ${toolName}: ${err instanceof Error ? err.message : String(err)}\n`,
         );
-        // A ProxyHttpError means the server was reached and the tool ran but
-        // errored — that's not a connectivity problem, so keep the handle
-        // valid and surface the real error instead of falling back to local.
         if (!(err instanceof ProxyHttpError)) invalidateHandle();
         throw err;
       }
@@ -408,9 +405,6 @@ export async function handleToolCall(
     try {
       return await handleProxy(validated, handle);
     } catch (err) {
-      // A ProxyHttpError means the tool actually ran on the server and
-      // failed. Falling back to local KV here would silently paper over
-      // that failure with a fake success, so surface the real error instead.
       if (err instanceof ProxyHttpError) throw err;
       process.stderr.write(
         `[@agentmemory/mcp] proxy call failed for ${toolName}: ${err instanceof Error ? err.message : String(err)}; invalidating handle and falling back to local KV\n`,

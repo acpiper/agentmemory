@@ -15,10 +15,8 @@ function forceProxy(): boolean {
   return raw === "1" || raw === "true";
 }
 
-// Thrown when the server was reached and responded, but the response was an
-// HTTP error — i.e. the tool executed and failed, as opposed to a network
-// failure. Callers must not treat this like a connectivity problem (no
-// invalidateHandle/local-fallback): the real error is in `message`.
+// Server reached and tool ran but failed — not a connectivity problem, so
+// callers must not invalidate the handle or fall back to local.
 export class ProxyHttpError extends Error {
   constructor(
     message: string,
