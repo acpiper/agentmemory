@@ -134,6 +134,17 @@ describe("mem::remember — mis-encoded tool call arguments", () => {
     expect(result.success).toBe(true);
   });
 
+  it("refuses content carrying the same marker twice", async () => {
+    // Two occurrences of one marker must trip the guard as surely as two
+    // different markers, so the check counts occurrences, not categories.
+    const { result } = await remember({
+      content: "<type>bug</type>\nmore text\n<type>fact</type>",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("one parameter per argument");
+  });
+
   it("keeps matching on repeated calls, so the check is not stateful", async () => {
     for (let i = 0; i < 3; i++) {
       const { result } = await remember({ content: leaked });
