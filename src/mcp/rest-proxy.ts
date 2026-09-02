@@ -15,6 +15,20 @@ function forceProxy(): boolean {
   return raw === "1" || raw === "true";
 }
 
+// Thrown when the server was reached and responded, but the response was an
+// HTTP error — i.e. the tool executed and failed, as opposed to a network
+// failure. Callers must not treat this like a connectivity problem (no
+// invalidateHandle/local-fallback): the real error is in `message`.
+export class ProxyHttpError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ProxyHttpError";
+  }
+}
+
 export interface ProxyHandle {
   mode: "proxy";
   baseUrl: string;
@@ -147,8 +161,17 @@ export async function resolveHandle(): Promise<Handle> {
             signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
           });
           if (!res.ok) {
-            throw new Error(
-              `${init?.method || "GET"} ${path} -> ${res.status} ${res.statusText}`,
+            const bodyText = await res.text().catch(() => "");
+            let detail = "";
+            try {
+              const parsed = bodyText ? JSON.parse(bodyText) : null;
+              if (parsed && typeof parsed.error === "string") detail = parsed.error;
+            } catch {
+              detail = bodyText;
+            }
+            throw new ProxyHttpError(
+              `${init?.method || "GET"} ${path} -> ${res.status} ${res.statusText}${detail ? `: ${detail}` : ""}`,
+              res.status,
             );
           }
           const text = await res.text();

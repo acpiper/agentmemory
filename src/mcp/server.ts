@@ -1282,7 +1282,7 @@ export function registerMcpEndpoints(
         return {
           status_code: 500,
           body: {
-            error: "Internal error",
+            error: err instanceof Error ? err.message : String(err),
           },
         };
       }
